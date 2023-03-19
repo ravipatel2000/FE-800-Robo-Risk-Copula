@@ -21,8 +21,8 @@ write.csv(daily_rtns, file = 'ETF_Daily_Data/ETF_Daily_Returns.csv')
 # Function to calculate weekly returns from daily
 calc_weekly_rtn <- function(x) {
   weekly_rtns <- c()
-  for (i in 1:(nrow(daily_rtns)-4)) {
-    weekly_rtns <- c(weekly_rtns, sum(daily_rtns$SPY.logrtn[i:(i+4)]))
+  for (i in 1:(length(x)-4)) {
+    weekly_rtns <- c(weekly_rtns, sum(x[i:(i+4)]))
   }
   return(weekly_rtns)
 }
@@ -30,8 +30,8 @@ calc_weekly_rtn <- function(x) {
 # Function to calculate monthly returns from daily
 calc_monthly_rtn <- function(x) {
   monthly_rtns <- c()
-  for (i in 1:(nrow(daily_rtns)-20)) {
-    monthly_rtns <- c(monthly_rtns, sum(daily_rtns$SPY.logrtn[i:(i+20)]))
+  for (i in 1:(length(x)-20)) {
+    monthly_rtns <- c(monthly_rtns, sum(x[i:(i+20)]))
   }
   return(monthly_rtns)
 }
