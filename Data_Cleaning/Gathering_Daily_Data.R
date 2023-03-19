@@ -4,21 +4,41 @@ tickers <- c('XLE', 'XLRE', 'XLY', 'XLC', 'XLK', 'XLF', 'XLU', 'XLB', 'XLP', 'XL
 
 getSymbols(tickers, from = '2006-01-01', to = '2023-01-01')
 
-adjusted_close_data <- cbind(SPY$SPY.Adjusted, XLE$XLE.Adjusted, XLY$XLY.Adjusted, XLK$XLK.Adjusted, XLF$XLF.Adjusted, 
-                             XLU$XLU.Adjusted, XLB$XLB.Adjusted, XLP$XLP.Adjusted, XLI$XLI.Adjusted, XLV$XLV.Adjusted)
+adjusted_close_data <- as.data.frame(cbind(SPY$SPY.Adjusted, XLE$XLE.Adjusted, XLY$XLY.Adjusted, XLK$XLK.Adjusted, XLF$XLF.Adjusted, 
+                                      XLU$XLU.Adjusted, XLB$XLB.Adjusted, XLP$XLP.Adjusted, XLI$XLI.Adjusted, XLV$XLV.Adjusted))
 
 colnames(adjusted_close_data) <- c('SPY.Price', 'XLE.Price', 'XLY.Price', 'XLK.Price', 'XLF.Price', 
                                    'XLU.Price', 'XLB.Price', 'XLP.Price', 'XLI.Price', 'XLV.Price')
 
-adjusted_close_data$SPY.logrtn <- diff(log(adjusted_close_data$SPY.Price))
-adjusted_close_data$XLE.logrtn <- diff(log(adjusted_close_data$XLE.Price))
-adjusted_close_data$XLY.logrtn <- diff(log(adjusted_close_data$XLY.Price))
-adjusted_close_data$XLK.logrtn <- diff(log(adjusted_close_data$XLK.Price))
-adjusted_close_data$XLF.logrtn <- diff(log(adjusted_close_data$XLF.Price))
-adjusted_close_data$XLU.logrtn <- diff(log(adjusted_close_data$XLU.Price))
-adjusted_close_data$XLB.logrtn <- diff(log(adjusted_close_data$XLB.Price))
-adjusted_close_data$XLP.logrtn <- diff(log(adjusted_close_data$XLP.Price))
-adjusted_close_data$XLI.logrtn <- diff(log(adjusted_close_data$XLI.Price))
-adjusted_close_data$XLV.logrtn <- diff(log(adjusted_close_data$XLV.Price))
+write.csv(adjusted_close_data, file = 'ETF_Daily_Data/ETF_Daily_Prices.csv')
 
-write.csv(adjusted_close_data, 'ETF_Daily_Data.csv')
+daily_rtns <- as.data.frame(apply(adjusted_close_data, MARGIN = 2, FUN = function(x) {diff(log(x))}))
+colnames(daily_rtns) <- c('SPY.logrtn', 'XLE.logrtn', 'XLY.logrtn', 'XLK.logrtn', 'XLF.logrtn', 'XLU.logrtn', 
+                          'XLB.logrtn', 'XLP.logrtn', 'XLI.logrtn', 'XLV.logrtn')
+
+write.csv(daily_rtns, file = 'ETF_Daily_Data/ETF_Daily_Returns.csv')
+
+# Function to calculate weekly returns from daily
+calc_weekly_rtn <- function(x) {
+  weekly_rtns <- c()
+  for (i in 1:(nrow(daily_rtns)-4)) {
+    weekly_rtns <- c(weekly_rtns, sum(daily_rtns$SPY.logrtn[i:(i+4)]))
+  }
+  return(weekly_rtns)
+}
+
+# Function to calculate monthly returns from daily
+calc_monthly_rtn <- function(x) {
+  monthly_rtns <- c()
+  for (i in 1:(nrow(daily_rtns)-20)) {
+    monthly_rtns <- c(monthly_rtns, sum(daily_rtns$SPY.logrtn[i:(i+20)]))
+  }
+  return(monthly_rtns)
+}
+
+# Apply above functions to make weekly and monthly csvs
+weekly_rtn <- apply(daily_rtns, MARGIN = 2, FUN = calc_weekly_rtn)
+monthly_rtn <- apply(daily_rtns, MARGIN = 2, FUN = calc_monthly_rtn)
+
+write.csv(weekly_rtn, file = 'ETF_Daily_Data/ETF_Weekly_Returns.csv')
+write.csv(monthly_rtn, file = 'ETF_Daily_Data/ETF_Monthly_Returns.csv')
