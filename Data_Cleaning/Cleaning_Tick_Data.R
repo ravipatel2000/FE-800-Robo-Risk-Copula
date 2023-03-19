@@ -76,3 +76,38 @@ write.csv(XLU_clean, 'ETF_Cleaned_Minute_Data/XLU.csv')
 write.csv(XLV_clean, 'ETF_Cleaned_Minute_Data/XLV.csv')
 write.csv(XLY_clean, 'ETF_Cleaned_Minute_Data/XLY.csv')
 
+
+### Compute intraday 15, 30 and 60 min csvs ####################################
+intraday_rtns <- read.csv('ETF_Cleaned_Minute_Data/All.csv')[c(-1), c(-1)]
+
+calc_15min_rtn <- function(x) {
+  intra_15min_rtn <- c()
+  for (i in 1:(length(x)-14)) {
+    intra_15min_rtn <- c(intra_15min_rtn, sum(x[i:(i+14)]))
+  }
+  return(intra_15min_rtn)
+}
+
+calc_30min_rtn <- function(x) {
+  intra_30min_rtn <- c()
+  for (i in 1:(length(x)-29)) {
+    intra_30min_rtn <- c(intra_30min_rtn, sum(x[i:(i+29)]))
+  }
+  return(intra_30min_rtn)
+}
+
+calc_1hr_rtn <- function(x) {
+  intra_1hr_rtn <- c()
+  for (i in 1:(length(x)-59)) {
+    intra_1hr_rtn <- c(intra_1hr_rtn, sum(x[i:(i+59)]))
+  }
+  return(intra_1hr_rtn)
+}
+
+intra_15min_rtn <- apply(intraday_rtns, MARGIN = 2, FUN = calc_15min_rtn)
+intra_30min_rtn <- apply(intraday_rtns, MARGIN = 2, FUN = calc_30min_rtn)
+intra_1hr_rtn <- apply(intraday_rtns, MARGIN = 2, FUN = calc_1hr_rtn)
+
+write.csv(intra_15min_rtn, file = 'ETF_Cleaned_Minute_Data/All_15min.csv')
+write.csv(intra_30min_rtn, file = 'ETF_Cleaned_Minute_Data/All_30min.csv')
+write.csv(intra_1hr_rtn, file = 'ETF_Cleaned_Minute_Data/All_1hr.csv')

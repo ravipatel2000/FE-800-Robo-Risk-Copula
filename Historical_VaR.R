@@ -40,33 +40,45 @@ write.csv(all_hist_var, file = 'Hist_VaR.csv')
 
 
 ### Intraday Data ##############################################################
-intraday_rtns <- read.csv('ETF_Cleaned_Minute_Data/All.csv')[c(-1), c(-1)]
+# Read daily csv
+intra_15min_rtn <- read.csv('ETF_Cleaned_Minute_Data/All_15min.csv')[, c(-1)]
+# Read weekly csv
+intra_30min_rtn <- read.csv('ETF_Cleaned_Minute_Data/All_30min.csv')[, c(-1)]
+# Read monthly csv
+intra_1hr_rtn <- read.csv('ETF_Cleaned_Minute_Data/All_1hr.csv')[, c(-1)]
 
-calc_15min_rtn <- function(x) {
-  intra_15min_rtn <- c()
-  for (i in 1:(length(x)-14)) {
-    intra_15min_rtn <- c(intra_15min_rtn, sum(x[i:(i+14)]))
-  }
-  return(intra_15min_rtn)
-}
+# 95% VaR Values
+var <- 0.95
+var_95_15min <- apply(intra_15min_rtn, MARGIN = 2, FUN = function(x) {sort(x)[length(x)*(1-var)]})
+var_95_30min <- apply(intra_30min_rtn, MARGIN = 2, FUN = function(x) {sort(x)[length(x)*(1-var)]})
+var_95_1hr <- apply(intra_1hr_rtn, MARGIN = 2, FUN = function(x) {sort(x)[length(x)*(1-var)]})
+# Combine into one matrix
+var_95 <- rbind(var_95_15min, var_95_30min, var_95_1hr)
 
-calc_30min_rtn <- function(x) {
-  intra_30min_rtn <- c()
-  for (i in 1:(length(x)-29)) {
-    intra_30min_rtn <- c(intra_30min_rtn, sum(x[i:(i+29)]))
-  }
-  return(intra_30min_rtn)
-}
 
-calc_1hr_rtn <- function(x) {
-  intra_1hr_rtn <- c()
-  for (i in 1:(length(x)-59)) {
-    intra_1hr_rtn <- c(intra_1hr_rtn, sum(x[i:(i+59)]))
-  }
-  return(intra_1hr_rtn)
-}
+# 99% VaR Values
+var <- 0.99
+var_99_15min <- apply(intra_15min_rtn, MARGIN = 2, FUN = function(x) {sort(x)[length(x)*(1-var)]})
+var_99_30min <- apply(intra_30min_rtn, MARGIN = 2, FUN = function(x) {sort(x)[length(x)*(1-var)]})
+var_99_1hr <- apply(intra_1hr_rtn, MARGIN = 2, FUN = function(x) {sort(x)[length(x)*(1-var)]})
+# Combine into one matrix
+var_99 <- rbind(var_99_15min, var_99_30min, var_99_1hr)
 
-intra_15min_rtn <- apply(intraday_rtns, MARGIN = 2, FUN = calc_15min_rtn)
-intra_15min_rtn <- apply(intraday_rtns, MARGIN = 2, FUN = calc_30min_rtn)
-intra_1hr_rtn <- apply(intraday_rtns, MARGIN = 2, FUN = calc_1hr_rtn)
+
+# Median Values
+var <- 0.50
+median_15min <- apply(intra_15min_rtn, MARGIN = 2, FUN = function(x) {sort(x)[length(x)*(1-var)]})
+median_30min <- apply(intra_30min_rtn, MARGIN = 2, FUN = function(x) {sort(x)[length(x)*(1-var)]})
+median_1hr <- apply(intra_1hr_rtn, MARGIN = 2, FUN = function(x) {sort(x)[length(x)*(1-var)]})
+# Combine into one matrix
+medians <- rbind(median_15min, median_30min, median_1hr)
+
+
+# Combine all historical VaR values into one matrix
+all_intraday_hist_var <- rbind(var_95, var_99, medians)
+all_intraday_hist_var <- all_intraday_hist_var[, c(9, 1, 7, 8, 2, 5, 4, 3, 10, 6)]
+colnames(all_intraday_hist_var) <- c('SPY', 'XLE', 'XLY', 'XLK', 'XLF', 'XLU', 'XLB', 'XLP', 'XLI', 'XLV')
+all_intraday_hist_var
+
+write.csv(all_intraday_hist_var, file = 'Hist_Intraday_VaR.csv')
 
