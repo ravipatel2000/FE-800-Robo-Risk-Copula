@@ -36,7 +36,7 @@ colnames(medians) <- colnames(var_95)
 all_hist_var <- rbind(var_95, var_99, medians)
 all_hist_var
 
-write.csv(all_hist_var, file = 'Hist_VaR.csv')
+write.csv(all_hist_var, file = 'VaR/Hist_VaR.csv')
 
 
 ### Intraday Data ##############################################################
@@ -80,5 +80,5 @@ all_intraday_hist_var <- all_intraday_hist_var[, c(9, 1, 7, 8, 2, 5, 4, 3, 10, 6
 colnames(all_intraday_hist_var) <- c('SPY', 'XLE', 'XLY', 'XLK', 'XLF', 'XLU', 'XLB', 'XLP', 'XLI', 'XLV')
 all_intraday_hist_var
 
-write.csv(all_intraday_hist_var, file = 'Hist_Intraday_VaR.csv')
+write.csv(all_intraday_hist_var, file = 'VaR/Hist_Intraday_VaR.csv')
 
