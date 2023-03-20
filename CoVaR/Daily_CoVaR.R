@@ -18,7 +18,7 @@ delta_covar_95 <- c()
 delta_covar_99 <- c()
 
 for (i in 2:10) {
-  regr <- lm(daily_rtns[,1] ~ daily_rtns[,2])
+  regr <- lm(daily_rtns[,1] ~ daily_rtns[,i])
   covar_95 <- c(covar_95, regr$coefficients[1] + regr$coefficients[2] * daily_VaR$XLE[1])
   covar_99 <- c(covar_99, regr$coefficients[1] + regr$coefficients[2] * daily_VaR$XLE[2])
   delta_covar_95 <- c(delta_covar_95, regr$coefficients[2] * (daily_VaR$XLE[1] - daily_VaR$XLE[3]))
@@ -34,7 +34,7 @@ delta_covar_95 <- c()
 delta_covar_99 <- c()
 
 for (i in 2:10) {
-  regr <- lm(weekly_rtns[,1] ~ weekly_rtns[,2])
+  regr <- lm(weekly_rtns[,1] ~ weekly_rtns[,i])
   covar_95 <- c(covar_95, regr$coefficients[1] + regr$coefficients[2] * weekly_VaR$XLE[1])
   covar_99 <- c(covar_99, regr$coefficients[1] + regr$coefficients[2] * weekly_VaR$XLE[2])
   delta_covar_95 <- c(delta_covar_95, regr$coefficients[2] * (weekly_VaR$XLE[1] - weekly_VaR$XLE[3]))
@@ -50,7 +50,7 @@ delta_covar_95 <- c()
 delta_covar_99 <- c()
 
 for (i in 2:10) {
-  regr <- lm(monthly_rtns[,1] ~ monthly_rtns[,2])
+  regr <- lm(monthly_rtns[,1] ~ monthly_rtns[,i])
   covar_95 <- c(covar_95, regr$coefficients[1] + regr$coefficients[2] * monthly_VaR$XLE[1])
   covar_99 <- c(covar_99, regr$coefficients[1] + regr$coefficients[2] * monthly_VaR$XLE[2])
   delta_covar_95 <- c(delta_covar_95, regr$coefficients[2] * (monthly_VaR$XLE[1] - monthly_VaR$XLE[3]))
