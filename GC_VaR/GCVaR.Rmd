@@ -1,0 +1,286 @@
+---
+title: "Gram-Charier Distribution"
+author: "Andrew Kaminsky"
+date: "2023-04-03"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(moments)
+library(fBasics)
+library(ReIns)
+library(PDQutils)
+library(mosaicCalc)
+```
+
+### Daily, Weekly, Monthly Data ##############################################################
+#DAILY
+```{r}
+# Read daily csv
+daily_rtns <- read.csv('ETF_Daily_Returns.csv')[, c(-1)]
+
+# Calculate mean, standard deviation, skewness and kurtosis of returns
+mean_returns_daily <- apply(daily_rtns, 2, mean)
+sd_returns_daily <- apply(daily_rtns, 2, sd)
+skewness_daily <- apply(daily_rtns, 2, skewness)
+kurtosis_daily <- apply(daily_rtns, 2, kurtosis)
+
+gc_params_daily <- matrix(0, ncol = ncol(daily_rtns), nrow = 4)
+gc_params_daily[1, ] <- mean_returns_daily
+gc_params_daily[2, ] <- sd_returns_daily
+gc_params_daily[3, ] <- skewness_daily
+gc_params_daily[4, ] <- kurtosis_daily
+```
+#WEEKLY
+```{r}
+# Read Weekly csv
+weekly_rtns <- read.csv('ETF_Weekly_Returns.csv')[, c(-1)]
+
+# Calculate mean, standard deviation, skewness and kurtosis of returns
+mean_returns_weekly <- apply(weekly_rtns, 2, mean)
+sd_returns_weekly <- apply(weekly_rtns, 2, sd)
+skewness_weekly <- apply(weekly_rtns, 2, skewness)
+kurtosis_weekly <- apply(weekly_rtns, 2, kurtosis)
+
+gc_params_weekly <- matrix(0, ncol = ncol(weekly_rtns), nrow = 4)
+gc_params_weekly[1, ] <- mean_returns_weekly
+gc_params_weekly[2, ] <- sd_returns_weekly
+gc_params_weekly[3, ] <- skewness_weekly
+gc_params_weekly[4, ] <- kurtosis_weekly
+```
+#MONTHLY
+```{r}
+# Read Monthly csv
+monthly_rtns <- read.csv('ETF_Monthly_Returns.csv')[, c(-1)]
+
+# Calculate mean, standard deviation, skewness and kurtosis of returns
+mean_returns_monthly <- apply(monthly_rtns, 2, mean)
+sd_returns_monthly <- apply(monthly_rtns, 2, sd) 
+skewness_monthly <- apply(monthly_rtns, 2, skewness)
+kurtosis_monthly <- apply(monthly_rtns, 2, kurtosis)
+
+gc_params_monthly <- matrix(0, ncol = ncol(monthly_rtns), nrow = 4)
+gc_params_monthly[1, ] <- mean_returns_monthly
+gc_params_monthly[2, ] <- sd_returns_monthly
+gc_params_monthly[3, ] <- skewness_monthly
+gc_params_monthly[4, ] <- kurtosis_monthly
+```
+#GC and Var Calculation Functions
+```{r}
+GC_Func <- function(z,skew,kurt){
+  h2 <- z^2 - 1
+  h3 <- z^3 - 3*z
+  
+  pnorm(z) - dnorm(z)*(((skew/6)*h2) - ((kurt-3/24)*h3))
+}
+
+Var_Func<- function(x,z){
+  Inv_GC <- integrate(GC_Func, lower = -Inf, upper = z, skew=x[3],  kurt = x[4])$value
+  
+  x[1] + x[2] * Inv_GC
+}
+```
+#95% Confidence
+```{r}
+z <- qnorm(0.05)
+
+#Daily
+DCalc95<- apply(gc_params_daily, 2, Var_Func, z=z)
+Daily_GCVar_95 <- DCalc95 * sqrt(10)
+Daily_GCVar_95
+
+#Weekly
+WCalc95<- apply(gc_params_weekly, 2, Var_Func, z=z)
+Weekly_GCVar_95 <- WCalc95 * sqrt(10)
+Weekly_GCVar_95
+
+#Monthly
+MCalc95<- apply(gc_params_monthly, 2, Var_Func, z=z)
+Monthly_GCVar_95 <- MCalc95 * sqrt(10)
+Monthly_GCVar_95
+```
+#99% Confidence
+```{r}
+z <- qnorm(0.01)
+
+#Daily
+DCalc99<- apply(gc_params_daily, 2, Var_Func, z=z)
+Daily_GCVar_99 <- DCalc99 * sqrt(10)
+Daily_GCVar_99
+
+#Weekly
+WCalc99<- apply(gc_params_weekly, 2, Var_Func, z=z)
+Weekly_GCVar_99 <- WCalc99 * sqrt(10)
+Weekly_GCVar_99
+
+#Monthly
+MCalc99<- apply(gc_params_monthly, 2, Var_Func, z=z)
+Monthly_GCVar_99 <- MCalc99 * sqrt(10)
+Monthly_GCVar_99
+```
+#Median Returns
+```{r}
+z <- qnorm(0.5)
+
+#Daily
+DCalcM<- apply(gc_params_daily, 2, Var_Func, z=z)
+Daily_GCVar_M <- DCalcM * sqrt(10)
+Daily_GCVar_M
+
+#Weekly
+WCalcM<- apply(gc_params_weekly, 2, Var_Func, z=z)
+Weekly_GCVar_M <- WCalcM * sqrt(10)
+Weekly_GCVar_M
+
+#Monthly
+MCalcM<- apply(gc_params_monthly, 2, Var_Func, z=z)
+Monthly_GCVar_M <- MCalcM * sqrt(10)
+Monthly_GCVar_M
+```
+#Sanitize/Export
+```{r}
+var_95 <- rbind(Daily_GCVar_95, Weekly_GCVar_95, Monthly_GCVar_95)
+colnames(var_95) <- c('SPY', 'XLE', 'XLY', 'XLK', 'XLF', 'XLU', 'XLB', 'XLP', 'XLI', 'XLV')
+
+var_99 <- rbind(Daily_GCVar_99, Weekly_GCVar_99, Monthly_GCVar_99)
+colnames(var_99) <- c('SPY', 'XLE', 'XLY', 'XLK', 'XLF', 'XLU', 'XLB', 'XLP', 'XLI', 'XLV')
+
+medians <- rbind(Daily_GCVar_M, Weekly_GCVar_M, Monthly_GCVar_M)
+colnames(medians) <- c('SPY', 'XLE', 'XLY', 'XLK', 'XLF', 'XLU', 'XLB', 'XLP', 'XLI', 'XLV')
+
+# Combine all historical VaR values into one matrix
+all_varGC <- rbind(var_95, var_99, medians)
+
+write.csv(all_varGC, file = 'GC_VaR_New.csv')
+```
+```{r}
+var_95
+```
+
+### Intraday Data ##############################################################
+#15MIN
+```{r}
+# Read 15Min csv
+rtns_15min <- read.csv('All_15min.csv')[, c(-1)]
+
+#Calculate mean, standard deviation, skewness and kurtosis of returns
+mean_returns_15min <- apply(rtns_15min, 2, mean, na.rm = TRUE)
+sd_returns_15min <- apply(rtns_15min, 2, sd, na.rm = TRUE)
+skewness_15min <- apply(rtns_15min, 2, skewness, na.rm = TRUE)
+kurtosis_15min <- apply(rtns_15min, 2, kurtosis, na.rm = TRUE)
+
+gc_params_15min <- matrix(0, ncol = ncol(rtns_15min), nrow = 4)
+gc_params_15min[1, ] <- mean_returns_15min
+gc_params_15min[2, ] <- sd_returns_15min
+gc_params_15min[3, ] <- skewness_15min
+gc_params_15min[4, ] <- kurtosis_15min
+gc_params_15min
+```
+#30MIN
+```{r}
+# Read 30Min csv
+rtns_30min <- read.csv('All_30min.csv')[, c(-1)]
+
+# Calculate mean, standard deviation, skewness and kurtosis of returns
+mean_returns_30min <- apply(rtns_30min, 2, mean, na.rm = TRUE)
+sd_returns_30min <- apply(rtns_30min, 2, sd, na.rm = TRUE)
+skewness_30min <- apply(rtns_30min, 2, skewness, na.rm = TRUE)
+kurtosis_30min <- apply(rtns_30min, 2, kurtosis, na.rm = TRUE)
+
+gc_params_30min <- matrix(0, ncol = ncol(rtns_30min), nrow = 4)
+gc_params_30min[1, ] <- mean_returns_30min
+gc_params_30min[2, ] <- sd_returns_30min
+gc_params_30min[3, ] <- skewness_30min
+gc_params_30min[4, ] <- kurtosis_30min
+```
+#1HR
+```{r}
+# Read 1hr csv
+rtns_1hr <- read.csv('All_1hr.csv')[, c(-1)]
+
+# Calculate mean, standard deviation, skewness and kurtosis of returns
+mean_returns_1hr <- apply(rtns_1hr, 2, mean, na.rm = TRUE)
+sd_returns_1hr <- apply(rtns_1hr, 2, sd, na.rm = TRUE)
+skewness_1hr <- apply(rtns_1hr, 2, skewness, na.rm = TRUE)
+kurtosis_1hr <- apply(rtns_1hr, 2, kurtosis, na.rm = TRUE)
+
+gc_params_1hr <- matrix(0, ncol = ncol(rtns_1hr), nrow = 4)
+gc_params_1hr[1, ] <- mean_returns_1hr
+gc_params_1hr[2, ] <- sd_returns_1hr
+gc_params_1hr[3, ] <- skewness_1hr
+gc_params_1hr[4, ] <- kurtosis_1hr
+```
+#95% Confidence
+```{r}
+z <- qnorm(0.05)
+
+#15Min
+Min15Calc95<- apply(gc_params_15min, 2, Var_Func, z=z)
+Min15_GCVar_95 <- Min15Calc95 * sqrt(10)
+Min15_GCVar_95
+
+#30Min
+Min30Calc95<- apply(gc_params_30min, 2, Var_Func, z=z)
+Min30_GCVar_95 <- Min30Calc95 * sqrt(10)
+Min30_GCVar_95
+
+#1Hour
+Hour1Calc95<- apply(gc_params_1hr, 2, Var_Func, z=z)
+Hour1_GCVar_95 <- Hour1Calc95 * sqrt(10)
+Hour1_GCVar_95
+```
+#99% Confidence
+```{r}
+z <- qnorm(0.01)
+
+#15Min
+Min15Calc99<- apply(gc_params_15min, 2, Var_Func, z=z)
+Min15_GCVar_99 <- Min15Calc99 * sqrt(10)
+Min15_GCVar_99
+
+#30Min
+Min30Calc99<- apply(gc_params_30min, 2, Var_Func, z=z)
+Min30_GCVar_99 <- Min30Calc99 * sqrt(10)
+Min30_GCVar_99
+
+#1Hour
+Hour1Calc99<- apply(gc_params_1hr, 2, Var_Func, z=z)
+Hour1_GCVar_99 <- Hour1Calc99 * sqrt(10)
+Hour1_GCVar_99
+```
+#Median Returns
+```{r}
+z <- qnorm(0.5)
+
+#15Min
+Min15CalcM<- apply(gc_params_15min, 2, Var_Func, z=z)
+Min15_GCVar_M <- Min15CalcM * sqrt(10)
+Min15_GCVar_M
+
+#30Min
+Min30CalcM<- apply(gc_params_30min, 2, Var_Func, z=z)
+Min30_GCVar_M <- Min30CalcM * sqrt(10)
+Min30_GCVar_M
+
+#1Hour
+Hour1CalcM<- apply(gc_params_1hr, 2, Var_Func, z=z)
+Hour1_GCVar_M <- Hour1CalcM * sqrt(10)
+Hour1_GCVar_M
+```
+#Sanitize/Export
+```{r}
+var_95_ID <- rbind(Min15_GCVar_95, Min30_GCVar_95, Hour1_GCVar_95)
+
+var_99_ID <- rbind(Min15_GCVar_99, Min30_GCVar_99, Hour1_GCVar_99)
+
+medians_ID <- rbind(Min15_GCVar_M, Min30_GCVar_M, Hour1_GCVar_M)
+
+# Combine all VaR values into one matrix
+all_intraday_GC_var <- rbind(var_95_ID, var_99_ID, medians_ID)
+all_intraday_GC_var <- all_intraday_GC_var[, c(9, 1, 7, 8, 2, 5, 4, 3, 10, 6)]
+colnames(all_intraday_GC_var) <- c('SPY', 'XLE', 'XLY', 'XLK', 'XLF', 'XLU', 'XLB', 'XLP', 'XLI', 'XLV')
+all_intraday_GC_var
+
+write.csv(all_intraday_GC_var, file = 'GC_Intraday_VaR_New.csv')
+```
