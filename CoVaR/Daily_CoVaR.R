@@ -8,9 +8,9 @@ weekly_rtns <- read.csv('ETF_Daily_Data/ETF_Weekly_Returns.csv')[, c(-1)]
 monthly_rtns <- read.csv('ETF_Daily_Data/ETF_Monthly_Returns.csv')[, c(-1)]
 
 VaR <- read.csv('VaR/Hist_VaR.csv')
-daily_VaR <- VaR[c(1, 4, 7),]
-weekly_VaR <- VaR[c(2, 5, 8),]
-monthly_VaR <- VaR[c(3, 6, 9),]
+daily_VaR <- VaR[c(1, 4, 7), -1]
+weekly_VaR <- VaR[c(2, 5, 8), -1]
+monthly_VaR <- VaR[c(3, 6, 9), -1]
 
 covar_95 <- c()
 covar_99 <- c()
@@ -19,14 +19,14 @@ delta_covar_99 <- c()
 
 for (i in 2:10) {
   regr <- lm(daily_rtns[,1] ~ daily_rtns[,i])
-  covar_95 <- c(covar_95, regr$coefficients[1] + regr$coefficients[2] * daily_VaR$XLE[1])
-  covar_99 <- c(covar_99, regr$coefficients[1] + regr$coefficients[2] * daily_VaR$XLE[2])
-  delta_covar_95 <- c(delta_covar_95, regr$coefficients[2] * (daily_VaR$XLE[1] - daily_VaR$XLE[3]))
-  delta_covar_99 <- c(delta_covar_99, regr$coefficients[2] * (daily_VaR$XLE[2] - daily_VaR$XLE[3]))
+  covar_95 <- c(covar_95, regr$coefficients[1] + regr$coefficients[2] * daily_VaR[1, i])
+  covar_99 <- c(covar_99, regr$coefficients[1] + regr$coefficients[2] * daily_VaR[2, i])
+  delta_covar_95 <- c(delta_covar_95, regr$coefficients[2] * (daily_VaR[1, i] - daily_VaR[3, i]))
+  delta_covar_99 <- c(delta_covar_99, regr$coefficients[2] * (daily_VaR[2, i] - daily_VaR[3, i]))
 }
 daily_covar <- rbind(covar_95, covar_99, delta_covar_95, delta_covar_99)
 rownames(daily_covar) <- c('Daily 95% CoVaR', 'Daily 99% CoVaR', 'Daily 95% Delta CoVaR', 'Daily 99% Delta CoVaR')
-colnames(daily_covar) <- colnames(daily_VaR[3:ncol(daily_VaR)])
+colnames(daily_covar) <- colnames(daily_VaR[2:ncol(daily_VaR)])
 
 covar_95 <- c()
 covar_99 <- c()
@@ -35,10 +35,10 @@ delta_covar_99 <- c()
 
 for (i in 2:10) {
   regr <- lm(weekly_rtns[,1] ~ weekly_rtns[,i])
-  covar_95 <- c(covar_95, regr$coefficients[1] + regr$coefficients[2] * weekly_VaR$XLE[1])
-  covar_99 <- c(covar_99, regr$coefficients[1] + regr$coefficients[2] * weekly_VaR$XLE[2])
-  delta_covar_95 <- c(delta_covar_95, regr$coefficients[2] * (weekly_VaR$XLE[1] - weekly_VaR$XLE[3]))
-  delta_covar_99 <- c(delta_covar_99, regr$coefficients[2] * (weekly_VaR$XLE[2] - weekly_VaR$XLE[3]))
+  covar_95 <- c(covar_95, regr$coefficients[1] + regr$coefficients[2] * weekly_VaR[1, i])
+  covar_99 <- c(covar_99, regr$coefficients[1] + regr$coefficients[2] * weekly_VaR[2, i])
+  delta_covar_95 <- c(delta_covar_95, regr$coefficients[2] * (weekly_VaR[1, i] - weekly_VaR[3, i]))
+  delta_covar_99 <- c(delta_covar_99, regr$coefficients[2] * (weekly_VaR[2, i] - weekly_VaR[3, i]))
 }
 weekly_covar <- rbind(covar_95, covar_99, delta_covar_95, delta_covar_99)
 rownames(weekly_covar) <- c('Weekly 95% CoVaR', 'Weekly 99% CoVaR', 'Weekly 95% Delta CoVaR', 'Weekly 99% Delta CoVaR')
@@ -51,10 +51,10 @@ delta_covar_99 <- c()
 
 for (i in 2:10) {
   regr <- lm(monthly_rtns[,1] ~ monthly_rtns[,i])
-  covar_95 <- c(covar_95, regr$coefficients[1] + regr$coefficients[2] * monthly_VaR$XLE[1])
-  covar_99 <- c(covar_99, regr$coefficients[1] + regr$coefficients[2] * monthly_VaR$XLE[2])
-  delta_covar_95 <- c(delta_covar_95, regr$coefficients[2] * (monthly_VaR$XLE[1] - monthly_VaR$XLE[3]))
-  delta_covar_99 <- c(delta_covar_99, regr$coefficients[2] * (monthly_VaR$XLE[2] - monthly_VaR$XLE[3]))
+  covar_95 <- c(covar_95, regr$coefficients[1] + regr$coefficients[2] * monthly_VaR[1, i])
+  covar_99 <- c(covar_99, regr$coefficients[1] + regr$coefficients[2] * monthly_VaR[2, i])
+  delta_covar_95 <- c(delta_covar_95, regr$coefficients[2] * (monthly_VaR[1, i] - monthly_VaR[3, i]))
+  delta_covar_99 <- c(delta_covar_99, regr$coefficients[2] * (monthly_VaR[2, i] - monthly_VaR[3, i]))
 }
 monthly_covar <- rbind(covar_95, covar_99, delta_covar_95, delta_covar_99)
 rownames(monthly_covar) <- c('Monthly 95% CoVaR', 'Monthly 99% CoVaR', 'Monthly 95% Delta CoVaR', 'Monthly 99% Delta CoVaR')
