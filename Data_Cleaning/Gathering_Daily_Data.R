@@ -42,3 +42,13 @@ monthly_rtn <- apply(daily_rtns, MARGIN = 2, FUN = calc_monthly_rtn)
 
 write.csv(weekly_rtn, file = 'ETF_Daily_Data/ETF_Weekly_Returns.csv')
 write.csv(monthly_rtn, file = 'ETF_Daily_Data/ETF_Monthly_Returns.csv')
+
+################################################################################
+# Making Lagged SPY Data
+
+daily_rtn <- read.csv('ETF_Daily_Data/ETF_Daily_Returns.csv')
+SPY <- daily_rtn[c(-1), 2]
+ETFs <- daily_rtn[c(1:nrow(daily_rtn)-1),c(1, 3:11)]
+lagged_spy_data <- cbind(ETFs, SPY)
+
+write.csv(lagged_spy_data, 'ETF_Daily_Data/ETF_Daily_Returns_Lagged_SPY.csv')
