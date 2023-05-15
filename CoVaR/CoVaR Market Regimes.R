@@ -78,11 +78,6 @@ recession_vals <- as.data.frame(t(rbind(Regime_95_VaR[7,2:10], calculate_covar(r
 colnames(recession_vals) <- colnames(pre_housing_vals)[2:4]
 recession_vals <- cbind(ETF, as.data.frame(lapply(recession_vals, as.numeric)))
 
-
-
-# Graphing #####################################################################
-library(ggplot2)
-
 VaR <- read.csv('VaR/Hist_VaR.csv')
 rownames(VaR) <- VaR[,1]
 VaR <- VaR[,c(-1)]
@@ -94,6 +89,10 @@ df <- cbind(t(VaR[1,-1]), t(CoVaR[3,]))
 colnames(df) <- c('Entire_Dataset_VaR_95', 'Entire_Dataset_Delta_CoVaR_95')
 df <- as.data.frame(df)
 df$ETF <- rownames(df)
+
+
+# Graphing #####################################################################
+library(ggplot2)
 
 # Entire Dataset
 ggplot(df, aes(x = Entire_Dataset_VaR_95, y = Entire_Dataset_Delta_CoVaR_95, label = ETF)) + 
@@ -143,44 +142,6 @@ ggplot(after_covid_crash_vals, aes(x = Daily_95_VaR, y = Daily_95_Delta_CoVaR, l
   xlab('95% VaR') + ylab('95% Delta CoVaR') +
   geom_point() + geom_text(hjust=0.7, vjust=-0.7) + 
   labs(title = '95% VaR for each ETF vs Delta CoVaR Relative to SPY After Covid-19 Recession')
-
-
-# Delta Covar and Graphs Entire Dataset #####################################################################
-daily_rtns <- read.csv('ETF_Daily_Data/ETF_Daily_Returns.csv')
-daily_rtns <- daily_rtns[,-1]
-VaR_95 <- apply(daily_rtns, MARGIN = 2, FUN = function(x) {sort(x)[length(x)*(1-0.95)]})
-Median <- apply(daily_rtns, MARGIN = 2, FUN = function(x) {sort(x)[length(x)*(1-0.5)]})
-
-covar_95 <- c()
-delta_covar_95 <- c()
-
-alphas <- c()
-betas <- c()
-
-for (i in 2:10) {
-  regr <- lm(daily_rtns[,1] ~ daily_rtns[,i])
-  alphas <- c(alphas, regr$coefficients[1])
-  betas <- c(betas, regr$coefficients[2])
-  covar_95 <- c(covar_95, regr$coefficients[1] + regr$coefficients[2] * VaR_95[i])
-  delta_covar_95 <- c(delta_covar_95, regr$coefficients[2] * (VaR_95[i] - Median[i]))
-}
-Daily_covar <- rbind(covar_95, delta_covar_95)
-rownames(Daily_covar) <- c('Daily 95% CoVaR', 'Daily 95% Delta CoVaR')
-colnames(Daily_covar) <- colnames(daily_rtns[2:ncol(daily_rtns)])
-
-Daily_covar
-
-ETF <- c("XLE", "XLY", "XLK", "XLF", "XLU", "XLB", "XLP", "XLI", "XLV")
-Daily_covar <- cbind(ETF, as.data.frame(t(rbind(VaR_95[2:10], Daily_covar))))
-colnames(Daily_covar) <- c('ETF', 'Daily_95_VaR', 'Daily_95_CoVaR', 'Daily_95_Delta_CoVaR')
-Daily_covar
-summary(Daily_covar)
-
-library(ggplot2)
-ggplot(Daily_covar, aes(x = Daily_95_VaR, y = Daily_95_Delta_CoVaR, label = ETF)) + 
-  xlab('95% VaR') + ylab('95% Delta CoVaR') +
-  geom_point() + geom_text(hjust=0.7, vjust=-0.7) + 
-  labs(title = '95% VaR for each ETF vs Delta CoVaR Relative to SPY Entire Dataset')
 
 
 
